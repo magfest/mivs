@@ -23,3 +23,10 @@ c.FINAL_GAME_STATUSES = [c.ACCEPTED, c.WAITLISTED, c.DECLINED, c.STUDIO_DECLINED
 
 # used for computing the difference between the "drop-dead deadline" and the "soft deadline"
 c.SOFT_JUDGING_DEADLINE = c.JUDGING_DEADLINE - timedelta(days=7)
+
+
+@Config.mixin
+class IndieConfig:
+    @property
+    def ALLOWED_TO_SUBMIT_ROUND1(self):
+        return c.BEFORE_ROUND_ONE_DEADLINE or c.HAS_INDIE_ADMIN_ACCESS
