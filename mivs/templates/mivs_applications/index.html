@@ -32,7 +32,7 @@ This is your application-in-progress for the MAGFest Indie Videogame Showcase fo
             <td>{{ developer.email }}</td>
             <td>
                 {% if developer.primary_contact %}
-                    <i>Primary Contact</i>
+                    <i>Receives Emails</i>
                 {% else %}
                     <form method="post" action="delete_developer">
                         {{ csrf_token() }}
@@ -54,14 +54,20 @@ You have {% if c.BEFORE_ROUND_ONE_DEADLINE %}currently{% endif %} registered {{ 
     after which no more games may be submitted.
 {% endif %}
 
-{% if c.BEFORE_ROUND_ONE_DEADLINE %}
+{% if allowed_to_add_game %}
+    {% if c.HAS_INDIE_ADMIN_ACCESS %}
+        <br/><br/><b><font color="red">
+        ADMIN NOTE: Because you are logged in as a MIVS admin, you can still use this form to manually create a
+        game. For non-admin users, they will not be able to do this.
+        </font></b>
+    {% endif %}
     <br/><a href="game">Add a game</a>
 {% endif %}
 
 {% for game in studio.games %}
     <h4>
         {{ game.title }}
-        {% if not game.submitted %}[<a href="game?id={{ game.id }}">Edit</a>]{% endif %}
+        {% if c.HAS_INDIE_ADMIN_ACCESS or not game.submitted %}[<a href="game?id={{ game.id }}">Edit</a>]{% endif %}
     </h4>
 
     {% if game.status in c.FINAL_GAME_STATUSES %}
@@ -76,8 +82,8 @@ You have {% if c.BEFORE_ROUND_ONE_DEADLINE %}currently{% endif %} registered {{ 
                 at least 30 seconds of uninterrupted gameplay.  This video will be utilized by our judges to
                 determine if your game is accepted through Round 1 of judging.  If your game is accepted into
                 the showcase, this video link may be embedded on the MIVS web-page and/or other places that
-                MAGFest advertises the MIVS area.  You ust submit a video link before {{ c.ROUND_ONE_DEADLINE|datetime }}.
-            {% elif c.AFTER_ROUND_ONE_DEADLINE %}
+                MAGFest advertises the MIVS area.  You must submit a video link before {{ c.ROUND_ONE_DEADLINE|datetime }}.
+            {% elif c.AFTER_ROUND_ONE_DEADLINE and not c.HAS_INDIE_ADMIN_ACCESS %}
                 You may no longer submit this game for consideration, as it is past the
                 {{ c.ROUND_ONE_DEADLINE|datetime }} deadline.
             {% else %}

@@ -1,12 +1,17 @@
 from mivs import *
 
 
+def allowed_to_submit_round1():
+    return c.BEFORE_ROUND_ONE_DEADLINE or c.HAS_INDIE_ADMIN_ACCESS
+
+
 @all_renderable()
 class Root:
     def index(self, session, message=''):
         return {
             'message': message,
-            'studio': session.logged_in_studio()
+            'studio': session.logged_in_studio(),
+            'allowed_to_add_game': allowed_to_submit_round1(),
         }
 
     def logout(self):
@@ -34,7 +39,9 @@ class Root:
         studio = session.indie_studio(dict(params, id=cherrypy.session.get('studio_id', 'None')), restricted=True)
         developer = session.indie_developer(params)
 
-        if cherrypy.request.method == 'POST':
+        allowed_to_submit = allowed_to_submit_round1() or not studio.is_new
+
+        if cherrypy.request.method == 'POST' and allowed_to_submit:
             message = check(studio)
             if not message and studio.is_new:
                 message = check(developer)
@@ -48,7 +55,8 @@ class Root:
         return {
             'message': message,
             'studio': studio,
-            'developer': developer
+            'developer': developer,
+            'allowed_to_submit': allowed_to_submit,
         }
 
     def game(self, session, message='', **params):
@@ -65,12 +73,16 @@ class Root:
         }
 
     def developer(self, session, message='', **params):
-        developer = session.indie_developer(params, applicant=True)
+        developer = session.indie_developer(params, applicant=True, bools=["primary_contact"])
         if cherrypy.request.method == 'POST':
             message = check(developer)
             if not message:
-                session.add(developer)
-                raise HTTPRedirect('index?message={}', 'Presenter added')
+                primaries = session.query(IndieDeveloper).filter_by(studio_id=developer.studio_id, primary_contact=True).all()
+                if not developer.primary_contact and len(primaries) == 1 and developer.id == primaries[0].id:
+                    message = "Studio requires at least one presenter to receive emails."
+                else:
+                    session.add(developer)
+                    raise HTTPRedirect('index?message={}', 'Presenters updated')
 
         return {
             'message': message,

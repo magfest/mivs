@@ -2,8 +2,12 @@ from mivs import *
 
 
 def _is_invalid_url(url):
+    if c.SKIP_MIVS_URL_VALIDATION:
+        return False
+
     try:
-        with urlopen(url) as f:
+        log.debug("_is_invalid_url() is fetching '%s' to check if it's reachable." % url)
+        with urlopen(url, timeout=30) as f:
             f.read()
     except:
         return True
@@ -14,7 +18,7 @@ IndieStudio.required = [('name', 'Studio Name')]
 
 @validation.IndieStudio
 def new_studio_deadline(studio):
-    if studio.is_new and c.AFTER_ROUND_ONE_DEADLINE:
+    if studio.is_new and c.AFTER_ROUND_ONE_DEADLINE and not c.HAS_INDIE_ADMIN_ACCESS:
         return 'Sorry, but the round one deadline has already passed, so no new studios may be registered'
 
 
@@ -57,7 +61,7 @@ IndieGame.required = [
 
 @validation.IndieGame
 def new_game_deadline(game):
-    if game.is_new and c.AFTER_ROUND_ONE_DEADLINE:
+    if game.is_new and c.AFTER_ROUND_ONE_DEADLINE and not c.HAS_INDIE_ADMIN_ACCESS:
         return 'Sorry, but the round one deadline has already passed, so no new games may be registered'
 
 
@@ -75,7 +79,7 @@ def video_link(game):
 
 @validation.IndieGame
 def submitted(game):
-    if game.submitted:
+    if game.submitted and not c.HAS_INDIE_ADMIN_ACCESS:
         return 'You cannot edit a game after it has been submitted'
 
 

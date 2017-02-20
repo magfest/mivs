@@ -137,7 +137,7 @@ class IndieStudio(MagModel):
 
 class IndieDeveloper(MagModel):
     studio_id       = Column(UUID, ForeignKey('indie_studio.id'))
-    primary_contact = Column(Boolean, default=False)
+    primary_contact = Column(Boolean, default=False)  # just means they receive emails
     first_name      = Column(UnicodeText)
     last_name       = Column(UnicodeText)
     email           = Column(UnicodeText)
@@ -245,6 +245,10 @@ class IndieGame(MagModel, ReviewMixin):
     def has_issues(self):
         return any(r.has_issues for r in self.reviews)
 
+    @property
+    def confirmed(self):
+        return self.status == c.ACCEPTED and self.studio and self.studio.group_id
+
 
 class IndieGameScreenshot(MagModel):
     game_id      = Column(UUID, ForeignKey('indie_game.id'))
@@ -280,7 +284,7 @@ class IndieGameReview(MagModel):
     video_status       = Column(Choice(c.VIDEO_REVIEW_STATUS_OPTS), default=c.PENDING)
     game_status        = Column(Choice(c.GAME_REVIEW_STATUS_OPTS), default=c.PENDING)
     video_score        = Column(Choice(c.VIDEO_REVIEW_OPTS), default=c.PENDING)
-    game_score         = Column(Integer, default=0)  # 0 = not reviewed, 1-5 score (5 is best)
+    game_score         = Column(Integer, default=0)  # 0 = not reviewed, 1-10 score (10 is best)
     video_review       = Column(UnicodeText)
     game_review        = Column(UnicodeText)
     developer_response = Column(UnicodeText)
