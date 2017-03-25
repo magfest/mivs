@@ -8,7 +8,7 @@
 {% if game.reviews %}
     {{ game.title }} already has the following judges assigned:
     <form method="post" action="remove">
-        {% csrf_token %}
+        {{ csrf_token() }}
         <input type="hidden" name="game_id" value="{{ game.id }}" />
         <input type="hidden" name="return_to" value="assign_judges?game_id={{ game.id }}" />
         <table class="table">

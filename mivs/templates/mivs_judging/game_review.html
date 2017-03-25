@@ -112,7 +112,7 @@ for reviewing the game:
         <div class="col-sm-6">
             <select name="game_score" class="form-control">
                 <option value="0">Rate this Game</option>
-                {% int_options 1 10 review.game_score %}
+                {{ int_options(1, 10, review.game_score) }}
             </select>
             <p class="help-block">
                 Please score the game on a scale of 1-10 where 1 is the lowest score and 10 is the highest score.

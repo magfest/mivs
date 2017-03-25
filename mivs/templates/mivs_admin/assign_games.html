@@ -7,7 +7,7 @@
 
 {% if judge.reviews %}
   <form method="post" action="remove">
-      {% csrf_token %}
+      {{ csrf_token() }}
       <input type="hidden" name="judge_id" value="{{ judge.id }}" />
       <input type="hidden" name="return_to" value="assign_games?judge_id={{ judge.id }}" />
 
