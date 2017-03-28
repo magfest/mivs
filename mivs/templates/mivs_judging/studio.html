@@ -56,7 +56,7 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Registered:</label>
         <div class="col-sm-6 game-display">
-            {{ studio.registered|datetime("%B %-m") }}
+            {{ studio.registered|datetime_local("%B %-m") }}
         </div>
     </div>
 
