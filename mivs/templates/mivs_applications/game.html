@@ -37,7 +37,7 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Genres:</label>
         <div class="col-sm-6">
-            {{ game.html_checkgroup('genres') }}
+            {{ macros.checkgroup(game, 'genres') }}
             <p class="help-block">
                 Please select all that apply.
             </p>
