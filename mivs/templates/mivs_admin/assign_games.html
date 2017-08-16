@@ -6,27 +6,38 @@
 <a class="return-link" href="index">Return to main judge/game list</a>
 
 {% if judge.reviews %}
-    {{ judge.full_name }} already has the following games assigned:
-    <table class="table">
-    <thead>
-        <tr>
-            <th>Game</th>
-            <th>Studio</th>
-            <th>Video Review</th>
-            <th>Game Review</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for review in judge.reviews %}
+  <form method="post" action="remove">
+      {{ csrf_token() }}
+      <input type="hidden" name="judge_id" value="{{ judge.id }}" />
+      <input type="hidden" name="return_to" value="assign_games?judge_id={{ judge.id }}" />
+
+        {{ judge.full_name }} already has the following games assigned:
+        <table class="table">
+        <thead>
             <tr>
-                <td>{{ review.game.title }}</td>
-                <td>({{ review.game.studio.name }})</td>
-                <td>{{ review.video_status_label }}</td>
-                <td>{{ review.game_status_label }}</td>
+                <th>Game</th>
+                <th>Studio</th>
+                <th>Video Review</th>
+                <th>Game Review</th>
+                <th>Remove Game</th>
             </tr>
-        {% endfor %}
-    </tbody>
-    </table>
+        </thead>
+        <tbody>
+            {% for review in judge.reviews %}
+                <tr>
+                    <td>{{ review.game.title }}</td>
+                    <td>({{ review.game.studio.name }})</td>
+                    <td>{{ review.video_status_label }}</td>
+                    <td>{{ review.game_status_label }}</td>
+                    <td><input type="checkbox" name="game_id" value="{{ review.game.id }}" /></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+
+      <input type="submit" value="Remove" />
+  </form>
+
 {% else %}
     {{ judge.full_name }} currently has no games assigned for review.
 {% endif %}
@@ -39,11 +50,11 @@
         already assigned to {{ judge.full_name }}.
     {% else %}
         Below is a list of games not already assigned to {{ judge.full_name }} which matches one or more of their preferred
-        genres ({{ judge.genres_labels|join:' / ' }}).
+        genres ({{ judge.genres_labels|join(' / ') }}).
     {% endif %}
 
     <form method="post" action="assign">
-        {% csrf_token %}
+        {{ csrf_token() }}
         <input type="hidden" name="judge_id" value="{{ judge.id }}" />
         <input type="hidden" name="return_to" value="assign_games?judge_id={{ judge.id }}" />
         <table class="table">
@@ -60,7 +71,7 @@
                 <tr>
                     <td>{{ game.title }}</td>
                     <td>{{ game.studio.name }}</td>
-                    <td>{{ game.genres_labels|join:' / ' }}</td>
+                    <td>{{ game.genres_labels|join(' / ') }}</td>
                     <td><input type="checkbox" name="game_id" value="{{ game.id }}" /></td>
                 </tr>
             {% endfor %}
@@ -77,7 +88,7 @@
     them for review anyway as you see appropriate:
 
     <form method="post" action="assign">
-        {% csrf_token %}
+        {{ csrf_token() }}
         <input type="hidden" name="judge_id" value="{{ judge.id }}" />
         <input type="hidden" name="return_to" value="assign_games?judge_id={{ judge.id }}" />
         <table class="table">
@@ -94,7 +105,7 @@
                 <tr>
                     <td>{{ game.title }}</td>
                     <td>{{ game.studio.name }}</td>
-                    <td>{{ game.genres_labels|join:' / ' }}</td>
+                    <td>{{ game.genres_labels|join(' / ') }}</td>
                     <td><input type="checkbox" name="game_id" value="{{ game.id }}" /></td>
                 </tr>
             {% endfor %}

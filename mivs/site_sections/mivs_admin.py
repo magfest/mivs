@@ -14,7 +14,7 @@ class Root:
     def social_media(self, out, session):
         out.writerow(['Studio', 'Website', 'Twitter', 'Facebook'])
         for game in session.indie_games():
-            if game.status == c.ACCEPTED and game.studio.group_id:
+            if game.confirmed:
                 out.writerow([
                     game.studio.name,
                     game.studio.website,
@@ -25,7 +25,7 @@ class Root:
     @csv_file
     def everything(self, out, session):
         out.writerow([
-            'Game', 'Studio', 'Primary Contact Name', 'Primary Contact Email',
+            'Game', 'Studio', 'Studio URL', 'Primary Contact Name', 'Primary Contact Email',
             'Genres', 'Brief Description', 'Long Description', 'How to Play',
             'Link to Video', 'Link to Game', 'Game Link Password',
             'Game Requires Codes?', 'Code Instructions', 'Build Status', 'Build Notes',
@@ -36,6 +36,7 @@ class Root:
             out.writerow([
                 game.title,
                 game.studio.name,
+                '{}/mivs_applications/continue_app?id={}'.format(c.URL_BASE, game.studio.id),
                 game.studio.primary_contact.full_name,
                 game.email,
                 ' / '.join(game.genres_labels),
@@ -51,7 +52,7 @@ class Root:
                 game.build_notes,
                 'submitted' if game.video_submitted else 'not submitted',
                 'submitted' if game.submitted else 'not submitted',
-                'accepted and confirmed' if game.status == c.ACCEPTED and game.studio.group_id else game.status_label,
+                'accepted and confirmed' if game.confirmed else game.status_label,
                 game.registered.strftime('%Y-%m-%d'),
                 '\n'.join(c.URL_BASE + screenshot.url.lstrip('.') for screenshot in game.screenshots),
                 str(game.average_score)
@@ -145,12 +146,21 @@ class Root:
     @csrf_protected
     def assign(self, session, game_id, judge_id, return_to):
         return_to = return_to + '&message={}'
-        game_id, judge_id = listify(game_id), listify(judge_id)
         for gid in listify(game_id):
             for jid in listify(judge_id):
                 if not session.query(IndieGameReview).filter_by(game_id=gid, judge_id=jid).first():
                     session.add(IndieGameReview(game_id=gid, judge_id=jid))
         raise HTTPRedirect(return_to, 'Assignment successful')
+
+    @csrf_protected
+    def remove(self, session, game_id, judge_id, return_to):
+        return_to = return_to + '&message={}'
+        for gid in listify(game_id):
+            for jid in listify(judge_id):
+                review = session.query(IndieGameReview).filter_by(game_id=gid, judge_id=jid).first()
+                if review:
+                    session.delete(review)
+        raise HTTPRedirect(return_to, 'Removal successful')
 
     def video_results(self, session, id):
         return {'game': session.indie_game(id)}
