@@ -1,6 +1,16 @@
 .idea
+env
+.env-success
+.vagrant
+__pycache__
 *.pyc
 *.egg-info
+*.log
+dist
+.tox
+.cache
 .eggs/
-screenshots/
+.coverage
 development.ini
+test.ini
+screenshots/

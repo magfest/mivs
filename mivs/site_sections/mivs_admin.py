@@ -10,6 +10,12 @@ class Root:
             'games': [g for g in session.indie_games() if g.video_submitted]
         }
 
+    def studios(self, session, message=''):
+        return {
+            'message': message,
+            'studios': session.query(IndieStudio).all()
+        }
+
     @csv_file
     def social_media(self, out, session):
         out.writerow(['Studio', 'Website', 'Twitter', 'Facebook'])
@@ -38,7 +44,7 @@ class Root:
                 game.studio.name,
                 '{}/mivs_applications/continue_app?id={}'.format(c.URL_BASE, game.studio.id),
                 game.studio.primary_contact.full_name,
-                game.email,
+                game.studio.primary_contact.email,
                 ' / '.join(game.genres_labels),
                 game.brief_description,
                 game.description,
@@ -79,7 +85,7 @@ class Root:
 
                 if not attendee:
                     attendee = Attendee(first_name=first_name, last_name=last_name, email=email,
-                                        placeholder=True, badge_type=c.STAFF_BADGE, paid=c.NEED_NOT_PAY)
+                                        placeholder=True, badge_type=c.ATTENDEE_BADGE, paid=c.NEED_NOT_PAY)
                     session.add(attendee)
 
                 password = genpasswd()
@@ -118,40 +124,50 @@ class Root:
     def assign_games(self, session, judge_id, message=''):
         judge = session.indie_judge(judge_id)
         unassigned_games = [g for g in session.indie_games() if g.video_submitted and judge.id not in (r.judge_id for r in g.reviews)]
-        if judge.all_genres:
-            matching, nonmatching = unassigned_games, []
-        else:
-            matching = [g for g in unassigned_games if set(judge.genres_ints).intersection(g.genres_ints)]
-            nonmatching = [g for g in unassigned_games if g not in matching]
+        matching = [g for g in unassigned_games if set(judge.platforms_ints).intersection(g.platforms_ints)]
+        matching_genre = [g for g in unassigned_games if judge.all_genres or set(judge.genres_ints).intersection(g.genres_ints)]
+        nonmatching = [g for g in unassigned_games if g not in matching]
 
         return {
             'judge': judge,
             'message': message,
             'matching': matching,
+            'matching_genre': matching_genre,
             'nonmatching': nonmatching
         }
 
     def assign_judges(self, session, game_id, message=''):
         game = session.indie_game(game_id)
         unassigned_judges = [j for j in session.indie_judges() if j.id not in (r.judge_id for r in game.reviews)]
-        matching = [j for j in unassigned_judges if j.all_genres or set(game.genres_ints).intersection(j.genres_ints)]
+        matching = [j for j in unassigned_judges if set(game.platforms_ints).intersection(j.platforms_ints)]
+        matching_genre = [j for j in unassigned_judges if j.all_genres or set(game.genres_ints).intersection(j.genres_ints)]
         nonmatching = [j for j in unassigned_judges if j not in matching]
         return {
             'game': game,
             'message': message,
             'matching': matching,
+            'matching_genre': matching_genre,
             'nonmatching': nonmatching
         }
 
     @csrf_protected
     def assign(self, session, game_id, judge_id, return_to):
         return_to = return_to + '&message={}'
-        game_id, judge_id = listify(game_id), listify(judge_id)
         for gid in listify(game_id):
             for jid in listify(judge_id):
                 if not session.query(IndieGameReview).filter_by(game_id=gid, judge_id=jid).first():
                     session.add(IndieGameReview(game_id=gid, judge_id=jid))
         raise HTTPRedirect(return_to, 'Assignment successful')
+
+    @csrf_protected
+    def remove(self, session, game_id, judge_id, return_to):
+        return_to = return_to + '&message={}'
+        for gid in listify(game_id):
+            for jid in listify(judge_id):
+                review = session.query(IndieGameReview).filter_by(game_id=gid, judge_id=jid).first()
+                if review:
+                    session.delete(review)
+        raise HTTPRedirect(return_to, 'Removal successful')
 
     def video_results(self, session, id):
         return {'game': session.indie_game(id)}

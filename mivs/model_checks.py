@@ -13,7 +13,10 @@ def _is_invalid_url(url):
         return True
 
 
-IndieStudio.required = [('name', 'Studio Name')]
+IndieStudio.required = [
+    ('name', 'Studio Name'),
+    ('website', 'Website')
+]
 
 
 @validation.IndieStudio
@@ -56,7 +59,14 @@ IndieGame.required = [
     ('brief_description', 'Brief Description'),
     ('genres', 'Genres'),
     ('description', 'Full Description'),
+    ('link_to_video', 'Link to Video')
 ]
+
+
+@validation.IndieGame
+def platforms_or_other(game):
+    if not game.platforms and not game.platforms_text:
+        return 'Please select a platform your game runs on or describe another platform in the box provided.'
 
 
 @validation.IndieGame

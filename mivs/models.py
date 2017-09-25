@@ -66,6 +66,8 @@ class Group:
 class IndieJudge(MagModel, ReviewMixin):
     admin_id    = Column(UUID, ForeignKey('admin_account.id'))
     genres      = Column(MultiChoice(c.INDIE_JUDGE_GENRE_OPTS))
+    platforms   = Column(MultiChoice(c.INDIE_PLATFORM_OPTS))
+    platforms_text = Column(UnicodeText)
     staff_notes = Column(UnicodeText)
 
     codes = relationship('IndieGameCode', backref='judge')
@@ -116,7 +118,7 @@ class IndieStudio(MagModel):
 
     @property
     def email(self):
-        return self.primary_contact.email
+        return [dev.email for dev in self.developers if dev.primary_contact]
 
     @property
     def primary_contact(self):
@@ -137,7 +139,7 @@ class IndieStudio(MagModel):
 
 class IndieDeveloper(MagModel):
     studio_id       = Column(UUID, ForeignKey('indie_studio.id'))
-    primary_contact = Column(Boolean, default=False)
+    primary_contact = Column(Boolean, default=False)  # just means they receive emails
     first_name      = Column(UnicodeText)
     last_name       = Column(UnicodeText)
     email           = Column(UnicodeText)
@@ -161,6 +163,8 @@ class IndieGame(MagModel, ReviewMixin):
     title             = Column(UnicodeText)
     brief_description = Column(UnicodeText)
     genres            = Column(MultiChoice(c.INDIE_GENRE_OPTS))
+    platforms         = Column(MultiChoice(c.INDIE_PLATFORM_OPTS))
+    platforms_text    = Column(UnicodeText)
     description       = Column(UnicodeText)       # 500 max
     how_to_play       = Column(UnicodeText)       # 1000 max
     link_to_video     = Column(UnicodeText)
@@ -214,6 +218,12 @@ class IndieGame(MagModel, ReviewMixin):
         if not self.agreed_liability:
             steps.append('You must check the box that agrees to our liability waiver (click the Edit link above)')
         return steps
+
+    @property
+    def video_broken(self):
+        for r in self.reviews:
+            if r.video_status == c.BAD_LINK:
+                return True
 
     @property
     def unlimited_code(self):
@@ -283,6 +293,7 @@ class IndieGameReview(MagModel):
     judge_id           = Column(UUID, ForeignKey('indie_judge.id'))
     video_status       = Column(Choice(c.VIDEO_REVIEW_STATUS_OPTS), default=c.PENDING)
     game_status        = Column(Choice(c.GAME_REVIEW_STATUS_OPTS), default=c.PENDING)
+    game_content_bad   = Column(Boolean, default=False)
     video_score        = Column(Choice(c.VIDEO_REVIEW_OPTS), default=c.PENDING)
     game_score         = Column(Integer, default=0)  # 0 = not reviewed, 1-10 score (10 is best)
     video_review       = Column(UnicodeText)
@@ -291,6 +302,13 @@ class IndieGameReview(MagModel):
     staff_notes        = Column(UnicodeText)
 
     __table_args__ = (UniqueConstraint('game_id', 'judge_id', name='review_game_judge_uniq'),)
+
+    @presave_adjustment
+    def no_score_if_broken(self):
+        if self.has_video_issues:
+            self.video_score = c.PENDING
+        if self.has_game_issues:
+            self.game_score = 0
 
     @property
     def has_video_issues(self):
