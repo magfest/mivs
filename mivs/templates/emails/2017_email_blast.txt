@@ -8,7 +8,7 @@ Since opening round 2, we've encountered two technical problems
 
 Due to the inconvenience, we're pushing back our end date for round 2 submission to October 9th 11:59pm.
 
-For reference, your the edit link for your game is {{ c.URL_BASE }}/mivs_applications/continue_app?id={{ studio.id }}
+For reference, the edit link for your game is {{ c.URL_BASE }}/mivs_applications/continue_app?id={{ game.studio.id }}
 
 If you have further questions, you can reach out to us at mivs@magfest.org
 
