@@ -59,8 +59,7 @@ IndieGame.required = [
     ('brief_description', 'Brief Description'),
     ('genres', 'Genres'),
     ('description', 'Full Description'),
-    ('link_to_video', 'Link to Video'),
-    ('link_to_game', 'Link to Game')
+    ('link_to_video', 'Link to Video')
 ]
 
 
