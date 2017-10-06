@@ -24,9 +24,25 @@ c.FINAL_GAME_STATUSES = [c.ACCEPTED, c.WAITLISTED, c.DECLINED, c.STUDIO_DECLINED
 # used for computing the difference between the "drop-dead deadline" and the "soft deadline"
 c.SOFT_JUDGING_DEADLINE = c.JUDGING_DEADLINE - timedelta(days=7)
 
+# Automatically generates all the previous MIVS years based on the eschaton and c.MIVS_START_YEAR
+c.PREV_MIVS_YEAR_OPTS, c.PREV_MIVS_YEARS = [], {}
+for num in range(c.ESCHATON.year - c.MIVS_START_YEAR):
+    val = c.MIVS_START_YEAR + num
+    desc = c.EVENT_NAME + ' MIVS ' + str(val)
+    c.PREV_MIVS_YEAR_OPTS.append((val, desc))
+    c.PREV_MIVS_YEARS[val] = desc
+
+
+def really_past_deadline(deadline):
+    return localized_now() > (deadline + timedelta(minutes=c.SUBMISSION_GRACE_PERIOD))
+
 
 @Config.mixin
 class IndieConfig:
     @property
-    def ALLOWED_TO_SUBMIT_ROUND1(self):
-        return c.BEFORE_ROUND_ONE_DEADLINE or c.HAS_INDIE_ADMIN_ACCESS
+    def CAN_SUBMIT_ROUND_ONE(self):
+        return not really_past_deadline(c.ROUND_ONE_DEADLINE) or c.HAS_INDIE_ADMIN_ACCESS
+
+    @property
+    def CAN_SUBMIT_ROUND_TWO(self):
+        return not really_past_deadline(c.ROUND_TWO_DEADLINE) or c.HAS_INDIE_ADMIN_ACCESS

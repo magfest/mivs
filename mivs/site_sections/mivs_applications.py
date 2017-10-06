@@ -3,10 +3,17 @@ from mivs import *
 
 @all_renderable()
 class Root:
-    def index(self, session, message=''):
+    def index(self, session, message='', **params):
+        if cherrypy.request.method == 'POST':
+            game = session.indie_game(params, applicant=True)
+            message = check(game)
+            if not message:
+                session.add(game)
+                raise HTTPRedirect('index?message={}', 'Game information updated')
+
         return {
             'message': message,
-            'studio': session.logged_in_studio(),
+            'studio': session.logged_in_studio()
         }
 
     def logout(self):
@@ -34,9 +41,7 @@ class Root:
         studio = session.indie_studio(dict(params, id=cherrypy.session.get('studio_id', 'None')), restricted=True)
         developer = session.indie_developer(params)
 
-        allowed_to_submit = c.ALLOWED_TO_SUBMIT_ROUND1 or not studio.is_new
-
-        if cherrypy.request.method == 'POST' and allowed_to_submit:
+        if cherrypy.request.method == 'POST':
             message = check(studio)
             if not message and studio.is_new:
                 message = check(developer)
@@ -50,12 +55,12 @@ class Root:
         return {
             'message': message,
             'studio': studio,
-            'developer': developer,
-            'allowed_to_submit': allowed_to_submit,
+            'developer': developer
         }
 
     def game(self, session, message='', **params):
-        game = session.indie_game(params, checkgroups=['genres', 'platforms'], bools=['agreed_liability', 'agreed_showtimes'], applicant=True)
+        game = session.indie_game(params, checkgroups=['genres', 'platforms'],
+                                  bools=['agreed_liability', 'agreed_showtimes'], applicant=True)
         if cherrypy.request.method == 'POST':
             message = check(game)
             if not message:
