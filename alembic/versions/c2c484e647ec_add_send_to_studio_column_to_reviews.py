@@ -1,7 +1,7 @@
 """Add 'send to studio' column to reviews
 
 Revision ID: c2c484e647ec
-Revises: 62f319b9a3b6
+Revises: a186029770bb
 Create Date: 2017-10-13 04:18:59.337221
 
 """
@@ -9,7 +9,7 @@ Create Date: 2017-10-13 04:18:59.337221
 
 # revision identifiers, used by Alembic.
 revision = 'c2c484e647ec'
-down_revision = '62f319b9a3b6'
+down_revision = 'a186029770bb'
 branch_labels = None
 depends_on = None
 
