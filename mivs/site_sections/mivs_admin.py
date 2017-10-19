@@ -126,11 +126,12 @@ class Root:
 
     def judges_owed_refunds(self, session):
         return {
-            'judges': [a for a in session.query(Attendee).join(Attendee.admin_account)
-                .filter(AdminAccount.judge != None)
+            'judges': [a for a in session.query(Attendee).outerjoin(Group, Attendee.group_id == Group.id)
+                .filter(or_(Attendee.paid == c.HAS_PAID, and_(Attendee.paid == c.PAID_BY_GROUP, Group.amount_paid > 0)))
+                .join(Attendee.admin_account)
+                .filter(AdminAccount.judge != None, AdminAccount.access.contains(str(c.INDIE_JUDGE)))
                 .options(joinedload(Attendee.group))
-                .order_by(Attendee.full_name).all()
-                       if a.paid == c.HAS_PAID or a.paid == c.PAID_BY_GROUP and a.group and a.group.amount_paid]
+                .order_by(Attendee.full_name)]
         }
 
     def assign_games(self, session, judge_id, message=''):
