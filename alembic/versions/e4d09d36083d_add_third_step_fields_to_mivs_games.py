@@ -53,12 +53,7 @@ sqlite_reflect_kwargs = {
 
 
 def upgrade():
-    from sqlalchemy.engine import reflection
-    inspector = reflection.Inspector(op.get_bind())
-
     op.rename_table('indie_game_screenshot', 'indie_game_image')
-
-    foreign_keys = set(map(lambda x: x['name'], inspector.get_foreign_keys('indie_game_screenshot')))
     if is_sqlite:
         with op.batch_alter_table('indie_game_image', reflect_kwargs=sqlite_reflect_kwargs) as batch_op:
             batch_op.add_column(sa.Column('is_screenshot', sa.Boolean(), server_default='True', nullable=False))
