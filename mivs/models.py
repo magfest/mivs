@@ -271,7 +271,7 @@ class IndieGame(MagModel, ReviewMixin):
 
     def best_screenshot_download_filenames(self, count=2):
         nonchars = re.compile(r'[\W_]+')
-        best_screenshots = self.best_screenshot_downloads()
+        best_screenshots = self.best_screenshot_downloads(count)
         screenshots = []
         for i, screenshot in enumerate(best_screenshots):
             if os.path.exists(screenshot.filepath):
