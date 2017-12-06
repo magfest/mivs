@@ -253,7 +253,7 @@ class IndieGame(MagModel, ReviewMixin):
     def best_screenshots(self):
         return [img for img in self.images if img.is_screenshot and img.use_in_promo]
 
-    def best_screenshot_filenames(self, count=2):
+    def best_screenshot_download_filenames(self, count=2):
         screenshots = []
         for i, screenshot in enumerate(self.best_screenshots):
             filepath = os.path.join(c.GAME_IMAGE_DIR, screenshot.id)
